@@ -839,7 +839,7 @@ async function _streamToBase64(readableStream) {
 }
 
 /** Extract text buffer from a PDF stream and return full text buffer */
-async function getContent(readableStream, fileName) {
+async function _getContentBuffer(readableStream, fileName) {
     try {
         if (!readableStream) throw new Error("getContent: readableStream is required");
         const ext = path.extname(fileName).toLowerCase();
@@ -862,11 +862,23 @@ async function getContent(readableStream, fileName) {
 /** Extract text buffer but return result as a readable stream */
 async function getContentStream(readableStream, fileName) {
     try {
-        const extractedTextBuffer = await getContent(readableStream, fileName);
+        const extractedTextBuffer = await _getContentBuffer(readableStream, fileName);
         return Readable.from(extractedTextBuffer);  // Convert extracted text into a Node ReadableStream and return
     } catch (err) {
         LOG.error(`getContentStream ERROR for file ${fileName}: ${err.message}`);
         return Readable.from("");  // Return empty stream on error
+    }
+}
+
+/** Extract and return the content buffer */
+async function getContent(filePath) {
+    try {
+        const readableStream = fs.createReadStream(filepath);
+        const extractedTextBuffer = await _getContentBuffer(readableStream, fileName);
+        return extractedTextBuffer;
+    } catch (err) {
+        LOG.error(`getContent ERROR for file ${path.basename(filePath)}: ${err.message}`);
+        return Buffer.from("");  // Return empty stream on error
     }
 }
 
